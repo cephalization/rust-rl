@@ -3,11 +3,12 @@ use specs::prelude::*;
 
 mod map;
 pub use map::*;
-
 mod components;
 pub use components::*;
 mod player;
 pub use player::*;
+mod rect;
+pub use rect::*;
 
 // STATE
 pub struct State {
@@ -60,7 +61,7 @@ fn main() -> rltk::BError {
         .with(Player {})
         .build();
 
-    gs.ecs.insert(new_map_test());
+    gs.ecs.insert(new_map_rooms_and_corridors());
 
     rltk::main_loop(context, gs)
 }
