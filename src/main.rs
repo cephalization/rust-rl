@@ -1,4 +1,4 @@
-use rltk::{GameState, Rltk, RGB};
+use rltk::{GameState, RandomNumberGenerator, Rltk, RGB};
 use specs::prelude::*;
 
 mod map;
@@ -49,10 +49,15 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
-    // yellow ampersand
+    // generate a vec of room coords and update map tiles accordingly
+    let (map, rooms) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
+    // create the player and place them in the center of a random room
+    let mut rng = RandomNumberGenerator::new();
+    let (x, y) = rooms[rng.range(0, rooms.len())].center();
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 30 })
+        .with(Position { x, y })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
@@ -60,8 +65,6 @@ fn main() -> rltk::BError {
         })
         .with(Player {})
         .build();
-
-    gs.ecs.insert(new_map_rooms_and_corridors());
 
     rltk::main_loop(context, gs)
 }
