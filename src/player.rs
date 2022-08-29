@@ -15,7 +15,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     for (_player, pos) in (&mut players, &mut positions).join() {
         let next_x = pos.x + delta_x;
         let next_y = pos.y + delta_y;
-        if map.tiles[Map::xy_idx(next_x, next_y)] != TileType::Wall {
+        if map.tiles[map.xy_idx(next_x, next_y)] != TileType::Wall {
             // only move the player if the next set of coords is not a wall tile
             pos.x = min(79, max(0, next_x));
             pos.y = min(49, max(0, next_y));
