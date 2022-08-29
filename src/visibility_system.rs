@@ -26,7 +26,7 @@ impl<'a> System<'a> for VisibilitySystem {
                 if let Some(_p) = _p {
                     for pt in viewshed.visible_tiles.iter() {
                         let pt_to_idx = map.xy_idx(pt.x, pt.y);
-                        map.seen_tiles[pt_to_idx] = true
+                        map.revealed_tiles[pt_to_idx] = true
                     }
                 }
                 viewshed.dirty = false;
