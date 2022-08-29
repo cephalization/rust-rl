@@ -24,8 +24,8 @@ impl GameState for State {
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
 
-        let map = self.ecs.fetch::<Vec<TileType>>();
-        draw_map(&map, ctx);
+        let map = self.ecs.fetch::<Map>();
+        map.draw_map(ctx);
         for (pos, render) in (&positions, &renderables).join() {
             ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
         }
@@ -49,15 +49,19 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
+    gs.ecs.register::<Map>();
     // generate a vec of room coords and update map tiles accordingly
-    let (map, rooms) = new_map_rooms_and_corridors();
-    gs.ecs.insert(map);
-    // create the player and place them in the center of a random room
+    let main_map = Map::new();
     let mut rng = RandomNumberGenerator::new();
-    let (x, y) = rooms[rng.range(0, rooms.len())].center();
+    let (map_center_x, map_center_y) = main_map.rooms[rng.range(0, main_map.rooms.len())].center();
+    gs.ecs.insert(main_map);
+    // create the player and place them in the center of a random room
     gs.ecs
         .create_entity()
-        .with(Position { x, y })
+        .with(Position {
+            x: map_center_x,
+            y: map_center_y,
+        })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
