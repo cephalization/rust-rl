@@ -35,15 +35,19 @@ impl Map {
         // make the boundaries of the vector as Wall TileType
         for x in 0..map.width {
             // set the top edge to walls
-            map.tiles[map.xy_idx(x, 0)] = TileType::Wall;
+            let top_index = map.xy_idx(x, 0);
+            map.tiles[top_index] = TileType::Wall;
             // set the bottom edge to walls
-            map.tiles[map.xy_idx(x, map.height - 1)] = TileType::Wall;
+            let bottom_index = map.xy_idx(x, map.height - 1);
+            map.tiles[bottom_index] = TileType::Wall;
         }
         for y in 0..map.height {
             // set the left edge to walls
-            map.tiles[map.xy_idx(0, y)] = TileType::Wall;
+            let left_edge_index = map.xy_idx(0, y);
+            map.tiles[left_edge_index] = TileType::Wall;
             // set the right edge to walls
-            map.tiles[map.xy_idx(map.width - 1, y)] = TileType::Wall;
+            let right_edge_index = map.xy_idx(map.width - 1, y);
+            map.tiles[right_edge_index] = TileType::Wall;
         }
 
         // randomly place walls around the inner part of the map
@@ -66,7 +70,8 @@ impl Map {
     fn apply_room_to_map(&mut self, room: &Rect) {
         for y in room.y1 + 1..=room.y2 {
             for x in room.x1 + 1..=room.x2 {
-                self.tiles[self.xy_idx(x, y)] = TileType::Floor;
+                let room_tile_index = self.xy_idx(x, y);
+                self.tiles[room_tile_index] = TileType::Floor;
             }
         }
     }
