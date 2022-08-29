@@ -9,6 +9,8 @@ mod player;
 pub use player::*;
 mod rect;
 pub use rect::*;
+mod visibility_system;
+use visibility_system::VisibilitySystem;
 
 // STATE
 pub struct State {
@@ -24,8 +26,7 @@ impl GameState for State {
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
 
-        let map = self.ecs.fetch::<Map>();
-        map.draw_map(ctx);
+        Map::draw_map(&self.ecs, ctx);
         for (pos, render) in (&positions, &renderables).join() {
             ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
         }
@@ -33,6 +34,8 @@ impl GameState for State {
 }
 impl State {
     fn run_systems(&mut self) {
+        let mut vis = VisibilitySystem {};
+        vis.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -49,6 +52,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
+    gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Map>();
     // generate a vec of room coords and update map tiles accordingly
     let main_map = Map::new();
@@ -66,6 +70,10 @@ fn main() -> rltk::BError {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
             bg: RGB::named(rltk::BLACK),
+        })
+        .with(Viewshed {
+            visible_tiles: Vec::new(),
+            range: 8,
         })
         .with(Player {})
         .build();
