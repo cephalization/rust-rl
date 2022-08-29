@@ -14,6 +14,7 @@ pub enum TileType {
 pub struct Map {
     pub rooms: Vec<Rect>,
     pub tiles: Vec<TileType>,
+    pub seen_tiles: Vec<bool>,
     pub height: i32,
     pub width: i32,
 }
@@ -40,6 +41,7 @@ impl Map {
         let mut map = Map {
             tiles: vec![TileType::Floor; 80 * 50],
             rooms: Vec::new(),
+            seen_tiles: vec![false; 50 * 80],
             height: 50,
             width: 80,
         };
@@ -112,6 +114,7 @@ impl Map {
         let mut map = Map {
             tiles: vec![TileType::Wall; 80 * 50],
             rooms: Vec::new(),
+            seen_tiles: vec![false; 50 * 80],
             height: 50,
             width: 80,
         };
@@ -165,12 +168,15 @@ impl Map {
         let mut players = ecs.write_storage::<Player>();
         let map = ecs.fetch::<Map>();
 
-        for (_player, viewshed) in (&mut players, &mut viewsheds).join() {
+        for (_player, _viewshed) in (&mut players, &mut viewsheds).join() {
             let mut x = 0;
             let mut y = 0;
 
             for tile in map.tiles.iter() {
-                if viewshed.visible_tiles.contains(&Point { x, y }) {
+                let pt = Point { x, y };
+                let xy_to_idx = map.xy_idx(pt.x, pt.y);
+
+                if map.seen_tiles[xy_to_idx] {
                     // map the tile type to a renderable representation
                     match tile {
                         TileType::Floor => {
