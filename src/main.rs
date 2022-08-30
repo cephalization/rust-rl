@@ -59,7 +59,6 @@ fn main() -> rltk::BError {
     let mut rng = RandomNumberGenerator::new();
     let player_spawn_room = rng.range(0, main_map.rooms.len());
     let (map_center_x, map_center_y) = main_map.rooms[player_spawn_room].center();
-    let map_size = (main_map.height * main_map.width) as usize;
 
     // create the player and place them in the center of a random room
     gs.ecs
