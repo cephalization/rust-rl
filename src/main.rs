@@ -54,11 +54,13 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Map>();
-    // generate a vec of room coords and update map tiles accordingly
+    // generate a Map for placing entities
     let main_map = Map::new();
     let mut rng = RandomNumberGenerator::new();
-    let (map_center_x, map_center_y) = main_map.rooms[rng.range(0, main_map.rooms.len())].center();
-    gs.ecs.insert(main_map);
+    let player_spawn_room = rng.range(0, main_map.rooms.len());
+    let (map_center_x, map_center_y) = main_map.rooms[player_spawn_room].center();
+    let map_size = (main_map.height * main_map.width) as usize;
+
     // create the player and place them in the center of a random room
     gs.ecs
         .create_entity()
@@ -79,5 +81,28 @@ fn main() -> rltk::BError {
         .with(Player {})
         .build();
 
+    // create an enemy in each room besides the player's
+    for room in main_map.rooms.iter().skip(player_spawn_room + 1) {
+        gs.ecs
+            .create_entity()
+            .with(Position {
+                x: room.center().0,
+                y: room.center().1,
+            })
+            .with(Renderable {
+                glyph: rltk::to_cp437('g'),
+                fg: RGB::named(rltk::RED),
+                bg: RGB::named(rltk::BLACK),
+            })
+            .with(Viewshed {
+                dirty: true,
+                range: 8,
+                visible_tiles: Vec::new(),
+            })
+            .build();
+    }
+
+    // register the map and move it into ecs
+    gs.ecs.insert(main_map);
     rltk::main_loop(context, gs)
 }
