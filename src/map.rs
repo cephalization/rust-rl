@@ -15,6 +15,7 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub tiles: Vec<TileType>,
     pub revealed_tiles: Vec<bool>,
+    pub visible_tiles: Vec<bool>,
     pub height: i32,
     pub width: i32,
 }
@@ -42,6 +43,7 @@ impl Map {
             tiles: vec![TileType::Floor; 80 * 50],
             rooms: Vec::new(),
             revealed_tiles: vec![false; 50 * 80],
+            visible_tiles: vec![false; 50 * 80],
             height: 50,
             width: 80,
         };
@@ -114,7 +116,8 @@ impl Map {
         let mut map = Map {
             tiles: vec![TileType::Wall; 80 * 50],
             rooms: Vec::new(),
-            revealed_tiles: vec![false; 50 * 80],
+            revealed_tiles: vec![false; 80 * 50],
+            visible_tiles: vec![false; 80 * 50],
             height: 50,
             width: 80,
         };
@@ -177,32 +180,29 @@ impl Map {
                 let xy_to_idx = map.xy_idx(pt.x, pt.y);
 
                 if map.revealed_tiles[xy_to_idx] {
+                    let glyph;
+                    let mut fg;
                     // map the tile type to a renderable representation
                     match tile {
                         TileType::Floor => {
-                            ctx.set(
-                                x,
-                                y,
-                                RGB::from_f32(0.5, 0.5, 0.5),
-                                RGB::from_f32(0., 0., 0.),
-                                rltk::to_cp437('.'),
-                            );
+                            fg = RGB::from_f32(0.0, 0.5, 0.5);
+                            glyph = rltk::to_cp437('.');
                         }
                         TileType::Wall => {
-                            ctx.set(
-                                x,
-                                y,
-                                RGB::from_f32(0.0, 1.0, 0.0),
-                                RGB::from_f32(0., 0., 0.),
-                                rltk::to_cp437('#'),
-                            );
+                            fg = RGB::from_f32(0.0, 1.0, 0.0);
+                            glyph = rltk::to_cp437('#');
                         }
                     }
+
+                    if !map.visible_tiles[xy_to_idx] {
+                        fg = fg.to_greyscale();
+                    }
+                    ctx.set(x, y, fg, RGB::from_f32(0., 0., 0.), glyph);
                 }
 
                 // Move to the next set of coordinates to draw
                 x += 1;
-                if x > 79 {
+                if x > map.width - 1 {
                     x = 0;
                     y += 1;
                 }
