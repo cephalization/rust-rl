@@ -87,24 +87,32 @@ fn main() -> rltk::BError {
         .build();
 
     // create an enemy in each room other than the player's
+    let mut rng = RandomNumberGenerator::new();
     for room in main_map.rooms.iter().skip(player_spawn_room + 1) {
-        gs.ecs
-            .create_entity()
-            .with(Position {
-                x: room.center().0,
-                y: room.center().1,
-            })
-            .with(Renderable {
-                glyph: rltk::to_cp437('g'),
-                fg: RGB::named(rltk::RED),
-                bg: RGB::named(rltk::BLACK),
-            })
-            .with(Viewshed {
-                dirty: true,
-                range: 8,
-                visible_tiles: Vec::new(),
-            })
-            .build();
+        let types = ['g', 'o'];
+        let roll = rng.random_slice_entry(&types);
+        match roll {
+            Some(t) => {
+                gs.ecs
+                    .create_entity()
+                    .with(Position {
+                        x: room.center().0,
+                        y: room.center().1,
+                    })
+                    .with(Renderable {
+                        glyph: rltk::to_cp437(*t),
+                        fg: RGB::named(rltk::RED),
+                        bg: RGB::named(rltk::BLACK),
+                    })
+                    .with(Viewshed {
+                        dirty: true,
+                        range: 8,
+                        visible_tiles: Vec::new(),
+                    })
+                    .build();
+            }
+            _ => {}
+        }
     }
 
     // register the map and move it into ecs
