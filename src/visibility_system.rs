@@ -21,9 +21,7 @@ impl<'a> System<'a> for VisibilitySystem {
             // when the viewshed is dirty, update vecs of visible tiles on the viewshed
             // if the viewshed belongs to a player, also update the revealed and visible tiles of the map
             if viewshed.dirty {
-                let length = map.height * map.width;
                 viewshed.visible_tiles.clear();
-                map.visible_tiles = vec![false; length as usize];
                 // calculate all points around the x,y pos of the current entity for the viewshed range
                 viewshed.visible_tiles =
                     field_of_view(Point::new(pos.x, pos.y), viewshed.range, &*map);
@@ -31,9 +29,13 @@ impl<'a> System<'a> for VisibilitySystem {
                 viewshed
                     .visible_tiles
                     .retain(|p| p.x < map.width && p.y < map.height && p.y >= 0 && p.x >= 0);
+
                 // if the entity is a player, update the map's visible and revealed tiles
                 let _p: Option<&Player> = player.get(ent);
                 if let Some(_p) = _p {
+                    let length = map.height * map.width;
+                    map.visible_tiles = vec![false; length as usize];
+
                     for pt in viewshed.visible_tiles.iter() {
                         let pt_to_idx = map.xy_idx(pt.x, pt.y);
                         map.revealed_tiles[pt_to_idx] = true;
