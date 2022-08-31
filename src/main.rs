@@ -25,10 +25,16 @@ impl GameState for State {
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
+        let map = self.ecs.fetch::<Map>();
 
+        // draw both visible and revealed tiles on the map
         Map::draw_map(&self.ecs, ctx);
+        // draw all other renderables that are within the vec of visible tiles on the map
         for (pos, render) in (&positions, &renderables).join() {
-            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            let xy_idx = map.xy_idx(pos.x, pos.y);
+            if map.visible_tiles[xy_idx] {
+                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            }
         }
     }
 }
@@ -80,7 +86,7 @@ fn main() -> rltk::BError {
         .with(Player {})
         .build();
 
-    // create an enemy in each room besides the player's
+    // create an enemy in each room other than the player's
     for room in main_map.rooms.iter().skip(player_spawn_room + 1) {
         gs.ecs
             .create_entity()
