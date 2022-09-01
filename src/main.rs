@@ -15,15 +15,26 @@ mod monster_ai_system;
 pub use monster_ai_system::*;
 
 // STATE
+#[derive(PartialEq, Clone, Copy)]
+pub enum RunState {
+    Paused,
+    Running,
+}
+
 pub struct State {
-    ecs: World,
+    pub ecs: World,
+    pub runstate: RunState,
 }
 impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
 
-        player_input(self, ctx);
-        self.run_systems();
+        if self.runstate == RunState::Running {
+            self.run_systems();
+            self.runstate = RunState::Paused;
+        } else {
+            self.runstate = player_input(self, ctx);
+        }
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -58,7 +69,10 @@ fn main() -> rltk::BError {
         .with_fps_cap(60.)
         .with_title("Rust RL")
         .build()?;
-    let mut gs = State { ecs: World::new() };
+    let mut gs = State {
+        ecs: World::new(),
+        runstate: RunState::Running,
+    };
     gs.ecs.register::<Player>();
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Position>();
