@@ -1,4 +1,4 @@
-use rltk::{GameState, RandomNumberGenerator, Rltk, RGB};
+use rltk::{GameState, Point, RandomNumberGenerator, Rltk, RGB};
 use specs::prelude::*;
 
 mod map;
@@ -137,5 +137,7 @@ fn main() -> rltk::BError {
 
     // register the map and move it into ecs
     gs.ecs.insert(main_map);
+    // register the player's position with ecs
+    gs.ecs.insert(Point::new(map_center_x, map_center_y));
     rltk::main_loop(context, gs)
 }

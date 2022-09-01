@@ -1,5 +1,5 @@
 use super::{Map, Position, RunState, State, TileType, Viewshed};
-use rltk::{Rltk, VirtualKeyCode};
+use rltk::{Point, Rltk, VirtualKeyCode};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::cmp::{max, min};
@@ -11,6 +11,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
     let mut viewshed = ecs.write_storage::<Viewshed>();
+    let mut player_position = ecs.write_resource::<Point>();
     let map = ecs.fetch::<Map>();
 
     for (_player, pos, vs) in (&mut players, &mut positions, &mut viewshed).join() {
@@ -20,6 +21,9 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             // only move the player if the next set of coords is not a wall tile
             pos.x = min(79, max(0, next_x));
             pos.y = min(49, max(0, next_y));
+            // update global player position in the ecs
+            player_position.x = pos.x;
+            player_position.y = pos.y;
             // now that the player has moved, set their viewshed to dirty to recaculate FoV
             vs.dirty = true;
         }
