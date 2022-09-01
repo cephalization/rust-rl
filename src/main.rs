@@ -11,6 +11,8 @@ mod rect;
 pub use rect::*;
 mod visibility_system;
 use visibility_system::VisibilitySystem;
+mod monster_ai_system;
+pub use monster_ai_system::*;
 
 // STATE
 pub struct State {
@@ -41,7 +43,9 @@ impl GameState for State {
 impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
+        let mut monster_ai = MonsterAI {};
         vis.run_now(&self.ecs);
+        monster_ai.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -56,6 +60,7 @@ fn main() -> rltk::BError {
         .build()?;
     let mut gs = State { ecs: World::new() };
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Monster>();
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Viewshed>();
@@ -109,6 +114,7 @@ fn main() -> rltk::BError {
                         range: 8,
                         visible_tiles: Vec::new(),
                     })
+                    .with(Monster {})
                     .build();
             }
             _ => {}
