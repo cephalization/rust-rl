@@ -24,6 +24,34 @@ impl BaseMap for Map {
     fn is_opaque(&self, idx: usize) -> bool {
         self.tiles[idx as usize] == TileType::Wall
     }
+
+    fn get_available_exits(&self, idx: usize) -> rltk::SmallVec<[(usize, f32); 10]> {
+        let mut exits = rltk::SmallVec::new();
+        let (x, y) = self.idx_xy(idx);
+
+        if self.is_exit_valid(x - 1, y) {
+            exits.push((self.xy_idx(x - 1, y), 1.0));
+        }
+        if self.is_exit_valid(x + 1, y) {
+            exits.push((self.xy_idx(x + 1, y), 1.0));
+        }
+        if self.is_exit_valid(x, y - 1) {
+            exits.push((self.xy_idx(x, y - 1), 1.0));
+        }
+        if self.is_exit_valid(x, y + 1) {
+            exits.push((self.xy_idx(x, y + 1), 1.0));
+        }
+
+        exits
+    }
+
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        let (x1, y1) = self.idx_xy(idx1);
+        let p1 = Point::new(x1, y1);
+        let (x2, y2) = self.idx_xy(idx2);
+        let p2 = Point::new(x2, y2);
+        rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
+    }
 }
 
 impl Algorithm2D for Map {
@@ -35,6 +63,10 @@ impl Algorithm2D for Map {
 impl Map {
     pub fn xy_idx(&self, x: i32, y: i32) -> usize {
         (y as usize * self.width as usize) + x as usize
+    }
+
+    pub fn idx_xy(&self, idx: usize) -> (i32, i32) {
+        (idx as i32 % self.width, idx as i32 / self.width)
     }
 
     /// Makes a map with solid boundaries and 400 randomly placed walls. Just for testing.
@@ -110,6 +142,15 @@ impl Map {
                 self.tiles[idx as usize] = TileType::Floor;
             }
         }
+    }
+
+    fn is_exit_valid(&self, x: i32, y: i32) -> bool {
+        if x < 1 || x >= self.width || y < 1 || y >= self.height {
+            return false;
+        }
+
+        let map_idx = self.xy_idx(x, y);
+        self.tiles[map_idx] != TileType::Wall
     }
 
     pub fn new() -> Map {
