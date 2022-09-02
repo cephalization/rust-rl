@@ -79,6 +79,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Map>();
+    gs.ecs.register::<Name>();
     // generate a Map for placing entities
     let main_map = Map::new();
     let mut rng = RandomNumberGenerator::new();
@@ -103,36 +104,54 @@ fn main() -> rltk::BError {
             dirty: true,
         })
         .with(Player {})
+        .with(Name {
+            name: "Player".to_string(),
+        })
         .build();
 
     // create an enemy in each room other than the player's
     let mut rng = RandomNumberGenerator::new();
     for room in main_map.rooms.iter().skip(player_spawn_room + 1) {
         let types = ['g', 'o'];
-        let roll = rng.random_slice_entry(&types);
-        match roll {
+        let names = ["grim gram", "orca", "orgrimmar", "goob", "gremlin", "osha"];
+        let roll_type = rng.random_slice_entry(&types);
+        let roll_name = rng.random_slice_entry(&names);
+        let mut chosen_type = types[0];
+        let mut chosen_name = names[0];
+        match roll_type {
             Some(t) => {
-                gs.ecs
-                    .create_entity()
-                    .with(Position {
-                        x: room.center().0,
-                        y: room.center().1,
-                    })
-                    .with(Renderable {
-                        glyph: rltk::to_cp437(*t),
-                        fg: RGB::named(rltk::RED),
-                        bg: RGB::named(rltk::BLACK),
-                    })
-                    .with(Viewshed {
-                        dirty: true,
-                        range: 8,
-                        visible_tiles: Vec::new(),
-                    })
-                    .with(Monster {})
-                    .build();
+                chosen_type = *t;
             }
             _ => {}
         }
+        match roll_name {
+            Some(n) => {
+                chosen_name = *n;
+            }
+            _ => {}
+        }
+
+        gs.ecs
+            .create_entity()
+            .with(Position {
+                x: room.center().0,
+                y: room.center().1,
+            })
+            .with(Renderable {
+                glyph: rltk::to_cp437(chosen_type),
+                fg: RGB::named(rltk::RED),
+                bg: RGB::named(rltk::BLACK),
+            })
+            .with(Viewshed {
+                dirty: true,
+                range: 8,
+                visible_tiles: Vec::new(),
+            })
+            .with(Monster {})
+            .with(Name {
+                name: chosen_name.to_string(),
+            })
+            .build();
     }
 
     // register the map and move it into ecs
