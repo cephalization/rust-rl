@@ -37,7 +37,7 @@ impl<'a> System<'a> for MonsterAI {
                     s_map.xy_idx(s_player_point.x, s_player_point.y),
                     &mut *s_map,
                 );
-                if path.success && path.steps.len() > 1 {
+                if path.success && path.steps.len() > 1 && !s_map.blocked[path.steps[1]] {
                     let (x, y) = s_map.idx_xy(path.steps[1]);
                     pos.x = x;
                     pos.y = y;

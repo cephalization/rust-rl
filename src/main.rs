@@ -3,6 +3,8 @@ use specs::prelude::*;
 
 mod map;
 pub use map::*;
+mod map_indexing_system;
+pub use map_indexing_system::*;
 mod components;
 pub use components::*;
 mod player;
@@ -55,8 +57,10 @@ impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
         let mut monster_ai = MonsterAI {};
+        let mut map_indexing = MapIndexingSystem {};
         vis.run_now(&self.ecs);
         monster_ai.run_now(&self.ecs);
+        map_indexing.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -80,6 +84,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Map>();
     gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTiles>();
     // generate a Map for placing entities
     let main_map = Map::new();
     let mut rng = RandomNumberGenerator::new();
@@ -107,6 +112,7 @@ fn main() -> rltk::BError {
         .with(Name {
             name: "Player".to_string(),
         })
+        .with(BlocksTiles {})
         .build();
 
     // create an enemy in each room other than the player's
@@ -148,6 +154,7 @@ fn main() -> rltk::BError {
                 .with(Name {
                     name: chosen_name.to_string(),
                 })
+                .with(BlocksTiles {})
                 .build();
         }
     }

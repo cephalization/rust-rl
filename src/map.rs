@@ -18,6 +18,7 @@ pub struct Map {
     pub visible_tiles: Vec<bool>,
     pub height: i32,
     pub width: i32,
+    pub blocked: Vec<bool>,
 }
 
 impl BaseMap for Map {
@@ -76,13 +77,14 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; 50 * 80],
             visible_tiles: vec![false; 50 * 80],
+            blocked: vec![false; 50 * 80],
             height: 50,
             width: 80,
         };
 
         // make the boundaries of the vector as Wall TileType
         for x in 0..map.width {
-            // set the top edge to walls
+            // set the top edge to wall
             let top_index = map.xy_idx(x, 0);
             map.tiles[top_index] = TileType::Wall;
             // set the bottom edge to walls
@@ -150,7 +152,13 @@ impl Map {
         }
 
         let map_idx = self.xy_idx(x, y);
-        self.tiles[map_idx] != TileType::Wall
+        !self.blocked[map_idx]
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter().enumerate() {
+            self.blocked[i] = *tile == TileType::Wall;
+        }
     }
 
     pub fn new() -> Map {
@@ -159,6 +167,7 @@ impl Map {
             rooms: Vec::new(),
             revealed_tiles: vec![false; 80 * 50],
             visible_tiles: vec![false; 80 * 50],
+            blocked: vec![false; 80 * 50],
             height: 50,
             width: 80,
         };
